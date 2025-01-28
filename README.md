@@ -17,10 +17,10 @@ Copy `.env.sample` to `.env` and then add your `SOURCE_ID` and `SOURCE_SECRET`.
 
 ## Why Electric SQL?
 
-Electric SQL syncs subsets of your Postgres data into local apps and services, making manual data fetching obsolete. Here's what it solves:
+Electric SQL syncs subsets of your Postgres data into local apps and services. Here's what it solves:
 
 ### State Transfer
-- Replaces APIs and data fetching with data sync
+- Replaces data fetching with data sync
 - Simplifies your code
 - Eliminates loading spinners
 
