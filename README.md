@@ -9,6 +9,10 @@ A web interface for exploring Shape queries to your Electric server. This tool p
 - **Keyboard Shortcuts**: Submit queries quickly with Cmd/Ctrl + Enter
 - **Shareable URLs**: Share queries easily with URL-based state
 
+## Use with Electric Cloud
+
+Copy `.env.sample` to `.env` and then add your `SOURCE_ID` and `SOURCE_SECRET`.
+
 ## Why Electric SQL?
 
 Electric SQL syncs subsets of your Postgres data into local apps and services, making manual data fetching obsolete. Here's what it solves:
