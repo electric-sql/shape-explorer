@@ -2,6 +2,8 @@
 
 A web interface for exploring Shape queries to your Electric server. This tool provides a simple way to query Electric and visualize the results.
 
+`npx git-scaffold electric-sql/shape-explorer shape-explorer`
+
 <img width="835" alt="Image" src="https://github.com/user-attachments/assets/dd59fb1b-a212-46c1-a1d1-e2ae3dcc3cc1" />
 
 ## Features
