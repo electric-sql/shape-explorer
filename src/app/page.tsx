@@ -1,8 +1,16 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useShape } from '@electric-sql/react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { ClipLoader } from 'react-spinners'
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  flexRender,
+  createColumnHelper,
+} from '@tanstack/react-table'
 
 export default function Home() {
   const searchParams = useSearchParams()
@@ -18,6 +26,30 @@ export default function Home() {
   const { isLoading, data, isError, error } = useShape({
     url: typeof window !== 'undefined' ? `${window.location.origin}/api/shape-proxy` : '/api/shape-proxy',
     params: queryParams,
+  })
+
+  const columnHelper = createColumnHelper<any>()
+
+  const columns = useMemo(() => {
+    if (!data || data.length === 0) return []
+    return Object.keys(data[0]).map(key =>
+      columnHelper.accessor(key, {
+        header: key,
+        cell: info => info.getValue(),
+      })
+    )
+  }, [data])
+
+  const tableInstance = useReactTable({
+    data: data || [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,11 +76,11 @@ export default function Home() {
     })
   }, [searchParams])
 
-  console.log({isLoading,isError, error}, error?.message)
+  console.log({ isLoading, isError, error, data }, error?.message);
 
   return (
-    <main>
-      <div className="bg-white shadow sm:rounded-lg mb-8">
+    <main className="w-full max-w-none px-4">
+      <div className="bg-white shadow sm:rounded-lg mb-8 w-full">
         <div className="px-4 py-5 sm:p-6">
           <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -110,45 +142,110 @@ export default function Home() {
           </div>
         </div>
       ) : isLoading ? (
-        <div className="text-center py-12">
-          <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-gray-500">
-            Loading...
-          </div>
+        <div className="text-center py-12 inline-flex items-center justify-center space-x-2">
+          <ClipLoader size={24} color="#6b7280" />
+          <span className="font-semibold text-gray-500">Loading...</span>
         </div>
-      ) : data ? (
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-6 py-3 border-b border-gray-200">
+      ) : data && data.length > 0 ? (
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg w-full">
+          <div className="px-6 py-3 border-b border-gray-200 w-full">
             <div className="text-sm text-gray-500">
               {data.length} {data.length === 1 ? 'row' : 'rows'}
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table className="w-full divide-y divide-gray-200">
               <thead>
-                <tr className="bg-gray-50">
-                  {data[0] &&
-                    Object.keys(data[0]).map((key) => (
+                {tableInstance.getHeaderGroups().map(headerGroup => (
+                  <tr key={headerGroup.id} className="bg-gray-50">
+                    {headerGroup.headers.map(header => (
                       <th
-                        key={key}
+                        key={header.id}
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500"
                       >
-                        {key}
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                       </th>
                     ))}
-                </tr>
+                  </tr>
+                ))}
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {data.map((row, i) => (
-                  <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    {Object.values(row).map((value, j) => (
-                      <td key={j} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {value}
+                {tableInstance.getRowModel().rows.map((row, i) => (
+                  <tr key={row.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    {row.getVisibleCells().map(cell => (
+                      <td key={cell.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </td>
                     ))}
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button
+                onClick={() => tableInstance.previousPage()}
+                disabled={!tableInstance.getCanPreviousPage()}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => tableInstance.nextPage()}
+                disabled={!tableInstance.getCanNextPage()}
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Showing{' '}
+                  <span className="font-medium">{tableInstance.getState().pagination.pageIndex * tableInstance.getState().pagination.pageSize + 1}</span>
+                  {' '}-{' '}
+                  <span className="font-medium">
+                    {Math.min(
+                      (tableInstance.getState().pagination.pageIndex + 1) * tableInstance.getState().pagination.pageSize,
+                      data.length
+                    )}
+                  </span>
+                  {' '}of{' '}
+                  <span className="font-medium">{data.length}</span> results
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    onClick={() => tableInstance.previousPage()}
+                    disabled={!tableInstance.getCanPreviousPage()}
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    <span className="sr-only">Previous</span>
+                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => tableInstance.nextPage()}
+                    disabled={!tableInstance.getCanNextPage()}
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    <span className="sr-only">Next</span>
+                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
