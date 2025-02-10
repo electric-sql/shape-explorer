@@ -35,7 +35,12 @@ export default function Home() {
     return Object.keys(data[0]).map(key =>
       columnHelper.accessor(key, {
         header: key,
-        cell: info => info.getValue(),
+        cell: info => {
+          const value = info.getValue()
+          return typeof value === 'object' && value !== null
+            ? JSON.stringify(value)
+            : String(value)
+        },
       })
     )
   }, [data])
