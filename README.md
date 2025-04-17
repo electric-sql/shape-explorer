@@ -15,7 +15,7 @@ A web interface for exploring Shape queries to your Electric server. This tool p
 
 ## Use with Electric Cloud
 
-Copy `.env.sample` to `.env` and then add your `SOURCE_ID` and `SOURCE_SECRET`.
+Copy `.env.sample` to `.env` and then add your `SOURCE_ID` and `SECRET`.
 
 ## Why Electric SQL?
 
@@ -60,7 +60,7 @@ Electric SQL syncs subsets of your Postgres data into local apps and services. H
 ## Environment Variables
 
 - `ELECTRIC_URL`: Your Electric SQL service URL
-- `ELECTRIC_SOURCE_SECRET`: Your Electric source secret
+- `ELECTRIC_SECRET`: Your Electric source secret
 - `ELECTRIC_SOURCE_ID`: Your Electric source ID
 
 ## Learn More

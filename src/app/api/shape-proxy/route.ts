@@ -15,8 +15,8 @@ export async function GET(request: Request) {
   }
 
   const headers = new Headers()
-  if (process.env.ELECTRIC_SOURCE_SECRET) {
-    originUrl.searchParams.set(`token`, process.env.ELECTRIC_SOURCE_SECRET)
+  if (process.env.ELECTRIC_SECRET) {
+    originUrl.searchParams.set(`token`, process.env.ELECTRIC_SECRET)
   }
 
   const newRequest = new Request(originUrl.toString(), {
